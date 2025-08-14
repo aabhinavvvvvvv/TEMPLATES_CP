@@ -14,18 +14,16 @@ using pii = pair<int,int>;
 const int N = 2e5 + 5;
 const int LOG = 20;
 
-#define pb push_back
-#define fastIO() ios::sync_with_stdio(false); cin.tie(nullptr); cout.tie(nullptr);
-
-vector<vector<pii>> up; // {ancestor, minNodeID}
+vector<vector<pii>> up; // {ancestor, minValueOnPath}
 vector<int> depth;
 vector<vector<int>> adj;
+vector<int> arr; // values assigned to nodes
 
 void dfs(int node, int parent) {
-    // immediate parent
-    up[node][0] = { parent, (parent == -1 ? node + 1 : min(node + 1, parent + 1)) };
+    // up[node][0] → (parent, minValue on 1 jump)
+    up[node][0] = { parent, (parent == -1 ? arr[node] : min(arr[node], arr[parent])) };
 
-    // fill binary lifting table for this node
+    // fill binary lifting table for node
     for (int j = 1; j < LOG; j++) {
         int mid_ancestor = up[node][j - 1].first;
         if (mid_ancestor != -1) {
@@ -42,38 +40,42 @@ void dfs(int node, int parent) {
 }
 
 pii findlca_min(int u, int v) {
-    int minNode = min(u + 1, v + 1);
+    int minVal = min(arr[u], arr[v]); // initial min is their own values
 
     if (depth[u] < depth[v]) swap(u, v);
     int diff = depth[u] - depth[v];
 
     for (int i = 0; i < LOG; ++i) {
         if (diff & (1 << i)) {
-            minNode = min(minNode, up[u][i].second);
+            minVal = min(minVal, up[u][i].second);
             u = up[u][i].first;
         }
     }
 
-    if (u == v) return {u, minNode};
+    if (u == v) return {u, minVal};
 
     for (int i = LOG - 1; i >= 0; --i) {
         if (up[u][i].first != -1 && up[u][i].first != up[v][i].first) {
-            minNode = min(minNode, up[u][i].second);
-            minNode = min(minNode, up[v][i].second);
+            minVal = min(minVal, up[u][i].second);
+            minVal = min(minVal, up[v][i].second);
             u = up[u][i].first;
             v = up[v][i].first;
         }
     }
 
-    minNode = min(minNode, up[u][0].second);
-    minNode = min(minNode, up[v][0].second);
+    // final step: check parent of u and v
+    minVal = min(minVal, up[u][0].second);
+    minVal = min(minVal, up[v][0].second);
 
-    return { up[u][0].first, minNode };
+    return { up[u][0].first, minVal };
 }
 
 void solve() {
     int n, q;
     cin >> n >> q;
+    arr.resize(n);
+    for (int i = 0; i < n; i++) cin >> arr[i];
+
     adj.assign(n, {});
     depth.assign(n, 0);
     up.assign(n, vector<pii>(LOG, {-1, INT_MAX}));
@@ -81,8 +83,8 @@ void solve() {
     for (int i = 0; i < n - 1; i++) {
         int u, v; cin >> u >> v;
         --u; --v;
-        adj[u].pb(v);
-        adj[v].pb(u);
+        adj[u].push_back(v);
+        adj[v].push_back(u);
     }
 
     dfs(0, -1);
@@ -92,17 +94,14 @@ void solve() {
         --u; --v;
         pii res = findlca_min(u, v);
         int lca = res.first;
-        int minNode = res.second;
+        int minVal = res.second;
         int dist = depth[u] + depth[v] - 2 * depth[lca];
-        cout << dist << " " << minNode << "\n";
+        cout << dist << " " << minVal << "\n";
     }
 }
 
 int main() {
-    fastIO();
-    freopen("Error.txt", "w", stderr);
-    int t = 1;
-    // cin >> t;
-    while (t--) solve();
-    return 0;
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    solve();
 }
