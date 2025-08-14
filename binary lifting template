@@ -1,0 +1,144 @@
+/*
+ * Competitive Programming Template
+ * Author: Abhinav Gupta
+ * GitHub: @aabhinavvvvvvv
+ * MAHAKAL KI JAI
+ */
+
+#include <bits/stdc++.h>
+using namespace std;
+
+using ll = long long;
+using ull = unsigned long long;
+using ld = long double;
+using vi = vector<int>;
+using vll = vector<ll>;
+using pii = pair<int, int>;
+using pll = pair<ll, ll>;
+
+const ll INF = 1e18;
+const int MOD = 1e9 + 7;
+const int N = 2e5 + 5;
+
+#define pb push_back
+#define all(x) (x).begin(), (x).end()
+#define rall(x) (x).rbegin(), (x).rend()
+#define F first
+#define S second
+#define rep(i,a,b) for(int i=a; i<b; ++i)
+#define per(i,a,b) for(int i=a; i>b; --i)
+#define each(x,a) for(auto &x : a)
+#define sz(x) (int)(x).size()
+#define fastIO() ios::sync_with_stdio(false); cin.tie(nullptr); cout.tie(nullptr);
+
+#define debug(x) cerr << #x << " = "; _print(x); cerr << endl;
+
+void _print(int t) { cerr << t; }
+void _print(long long t) { cerr << t; }
+void _print(unsigned long long t) { cerr << t; }
+void _print(string t) { cerr << '"' << t << '"'; }
+void _print(char t) { cerr << '\'' << t << '\''; }
+void _print(long double t) { cerr << t; }
+void _print(double t) { cerr << t; }
+
+template <typename T, typename V> void _print(pair<T, V> p);
+template <typename T> void _print(vector<T> v);
+template <typename T> void _print(set<T> v);
+template <typename T> void _print(multiset<T> v);
+template <typename T, typename V> void _print(map<T, V> v);
+
+template <typename T, typename V>
+void _print(pair<T, V> p) { cerr << '{'; _print(p.first); cerr << ", "; _print(p.second); cerr << '}'; }
+template <typename T>
+void _print(vector<T> v) { cerr << "[ "; for (T i : v) _print(i), cerr << " "; cerr << "]"; }
+template <typename T>
+void _print(set<T> v) { cerr << "[ "; for (T i : v) _print(i), cerr << " "; cerr << "]"; }
+template <typename T>
+void _print(multiset<T> v) { cerr << "[ "; for (T i : v) _print(i), cerr << " "; cerr << "]"; }
+template <typename T, typename V>
+void _print(map<T, V> v) { cerr << "[ "; for (auto i : v) _print(i), cerr << " "; cerr << "]"; }
+
+/*
+ * Bakchodi Mat Kar Laude
+ * Chup Chap code kar
+ * I will not be responsible for any damage caused by this code
+ */
+void dfs(int node, int parent, vector<vector<int>>& dp, vector<vector<int>>& adj, vector<int>& depth){
+    if(parent == -1){
+        depth[node] = 0;
+    } else {
+        depth[node] = depth[parent] + 1;
+    }
+    dp[node][0] = parent;
+    for(int i = 1; i < 20; i++){
+        if(dp[node][i - 1] != -1){
+            dp[node][i] = dp[dp[node][i - 1]][i - 1];
+        }
+    }
+    for(auto x : adj[node]){
+        if(x != parent){
+            dfs(x, node, dp, adj, depth);
+        }
+    }
+}
+int findlca(int u, int v, vector<vector<int>>& dp, vector<int>& depth){
+    if(u == v) return u;
+    if(depth[u] < depth[v]) swap(u, v);
+    int diff = depth[u] - depth[v];
+    for(int i = 19; i >= 0; i--){
+        if((1 << i) & diff){
+            u = dp[u][i];
+        }
+    }
+    for(int i = 19; i >= 0; i--){
+        if(dp[u][i] != -1 && dp[v][i] != -1 && dp[u][i] != dp[v][i]){
+            u = dp[u][i];
+            v = dp[v][i];
+        }
+    }
+    if(u == v) return u;
+    return dp[u][0];
+
+}
+void solve() {
+    int n, q; cin >> n >> q;
+    vector<vector<int>> adj(n);
+    for(int i = 0; i < n - 1; i++){
+        int u, v; cin >> u >> v;
+        u--;
+        v--;
+        adj[u].pb(v);
+        adj[v].pb(u);
+    }
+    vector<vector<int>> dp(n, vector<int>(20, -1));
+    vector<int> depth(n, 0);
+    dfs(0, -1, dp, adj, depth);
+    while(q--){
+        int u, v; cin >> u >> v;
+        u--;
+        v--;
+
+        int lca = findlca(u, v, dp, depth);
+        int ans = depth[u] + depth[v] - 2 * depth[lca];
+        cout << ans << "\n";
+    }
+}
+
+
+int main() {
+    fastIO();
+
+    // ✅ Always redirect stderr to Error.txt for debug
+    freopen("Error.txt", "w", stderr);
+
+#ifdef LOCAL
+    // ✅ Only redirect input/output during local debugging
+    freopen("input.txt", "r", stdin);
+    freopen("output.txt", "w", stdout);
+#endif
+
+    int t = 1;
+    // cin >> t;
+    while (t--) solve();
+    return 0;
+}
